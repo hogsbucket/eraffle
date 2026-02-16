@@ -1,179 +1,183 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const nameLists = document.querySelectorAll('.name-list');
-    const startButton = document.querySelector('.spin-button');
-    if (!startButton) return console.error("Start button not found");
+// 1. Create the large pool of 10,000 names
+const globalNamePool = Array.from({length: 10000}, (_, i) => `Participant ${i + 1}`);
+let lanes = [];
 
-    let isSpinning = false;
-    let completedAnimations = 0;
-    const winners = [];
+class RaffleLane {
+    constructor(container, index, laneSpecificPool) {
+        this.lanePool = laneSpecificPool;
+        
+        const wrapper = document.createElement('div');
+        wrapper.className = 'lane-wrapper';
 
-    // Function to save the current state to localStorage
-    const saveState = () => {
-        const state = {
-            winners: winners,
-            nameLists: Array.from(nameLists).map(list => ({
-                transform: list.style.transform,
-                children: Array.from(list.children).map(child => ({
-                    text: child.textContent,
-                    color: child.style.color
-                }))
-            }))
-        };
-        localStorage.setItem('raffleState', JSON.stringify(state));
-    };
-    
-    const restoreState = () => {
-        const savedState = localStorage.getItem('raffleState');
-        if (savedState) {
-            const state = JSON.parse(savedState);
-            winners.push(...state.winners);
+        const label = document.createElement('div');
+        label.className = 'lane-label';
+        label.textContent = index + 1;
 
-            state.nameLists.forEach((listState, index) => {
-                const list = nameLists[index];
-                list.style.transform = listState.transform;
+        this.laneDiv = document.createElement('div');
+        this.laneDiv.className = 'lane-container';
+        this.laneDiv.innerHTML = '<div class="win-zone"></div>';
 
-                listState.children.forEach((childState, childIndex) => {
-                    const child = list.children[childIndex];
-                    if (child) {
-                        child.style.color = childState.color;
-                    }
-                });
-            });
+        wrapper.appendChild(label);
+        wrapper.appendChild(this.laneDiv);
+        container.appendChild(wrapper);
+
+        this.items = [];
+        this.speed = 0;
+        this.isSpinning = false;
+        this.currentWinner = "";
+        this.init();
+    }
+
+    init() {
+        for (let i = 0; i < 3; i++) {
+            const div = document.createElement('div');
+            div.className = 'name-item';
+            div.textContent = this.getRandomName();
+            div.style.top = `${i * 50}px`; 
+            this.laneDiv.appendChild(div);
+            this.items.push({ el: div, top: i * 50 });
         }
-    };
-    restoreState();
+    }
 
-    const startRaffle = () => {
-        if (isSpinning) return;
-        isSpinning = true;
-        startButton.disabled = true;
-        completedAnimations = 0;
-        winners.length = 0;
+    getRandomName() {
+        return this.lanePool[Math.floor(Math.random() * this.lanePool.length)];
+    }
 
-        nameLists.forEach((nameList) => {
-            Array.from(nameList.children).forEach(item => {
-                item.style.color = 'black'; // Reset color
-            });
+    spin() {
+        this.speed = 20 + (Math.random() * 25);
+        this.isSpinning = true;
+        this.animate();
+    }
 
-            const itemHeight = 50;
-            let position = 0;
-            let speed = Math.random() * 15 + 15;
-            let animationId;
+    animate() {
+        this.items.forEach(item => {
+            item.top -= this.speed;
+            if (item.top < -50) {
+                const maxTop = Math.max(...this.items.map(i => i.top));
+                item.top = maxTop + 50;
+                item.el.textContent = this.getRandomName();
+            }
+            item.el.style.top = `${item.top}px`;
+        });
 
-            const animateNames = () => {
-                position -= speed;
-                nameList.style.transform = `translateY(${position}px)`;
+        if (this.speed > 0.4) {
+            this.speed *= 0.982;
+            requestAnimationFrame(() => this.animate());
+        } else {
+            this.snapToGrid();
+        }
+    }
 
-                // Moves the first name in the list to the end when scrolled past one item height (50px)
-                if (nameList.firstElementChild && Math.abs(position) >= itemHeight) {
-                    position += itemHeight;
-                    const firstName = nameList.firstElementChild;
-                    nameList.appendChild(firstName);
-                }
+    snapToGrid() {
+        const closest = this.items.reduce((prev, curr) => 
+            Math.abs(curr.top) < Math.abs(prev.top) ? curr : prev);
+        
+        const shift = -closest.top;
 
-                // Decrease speed
-                if (speed > 2) {
-                    speed -= 0.05;
-                    animationId = requestAnimationFrame(animateNames);
-                } else {
-                    cancelAnimationFrame(animationId);
-                    finalizeRaffle(nameList);
-                }
-            };
-
-            const finalizeRaffle = (list) => {
-                let finalPosition = Math.round(position / itemHeight) * itemHeight;
-                list.style.transform = `translateY(${finalPosition}px)`;
-                
-                if (list.firstElementChild) {
-                    const winner = list.firstElementChild;
-                    winner.style.color = '#e24b25'; // Ensure this is applied
-                    winners.push(winner.textContent);
-                }
-
-                completedAnimations++;
-                if (completedAnimations === nameLists.length) {
-                    startConfetti();
-                    saveWinners(winners);
-                    saveState(); // Save state after raffle ends
-                }
-            };
-
-            animateNames();
+        this.items.forEach(item => {
+            item.top += shift;
+            item.el.style.transition = "top 0.6s cubic-bezier(0.23, 1, 0.32, 1)";
+            item.el.style.top = `${item.top}px`;
         });
 
         setTimeout(() => {
-            startButton.disabled = false;
-            isSpinning = false;
-        }, 5000);
-    };
+            this.currentWinner = closest.el.textContent;
+            this.items.forEach(item => item.el.style.transition = "");
+            this.isSpinning = false;
+            checkAllFinished();
+        }, 700);
+    }
+}
 
-    function saveWinners(winners) {
-        const savedWinners = JSON.parse(localStorage.getItem('savedWinners')) || [];
+function initWorld() {
+    const world = document.getElementById('world');
+    world.innerHTML = '';
+    lanes = [];
+    const count = parseInt(document.getElementById('laneCount').value);
+    const chunkSize = Math.floor(globalNamePool.length / count);
 
-        winners.forEach(winnerName => {
-            savedWinners.push({ name: winnerName });
+    for (let i = 0; i < count; i++) {
+        const start = i * chunkSize;
+        const end = (i === count - 1) ? globalNamePool.length : (i + 1) * chunkSize;
+        const lanePool = globalNamePool.slice(start, end);
+        lanes.push(new RaffleLane(world, i, lanePool));
+    }
+}
+
+function spinAll() {
+    document.getElementById('spin-button').disabled = true;
+    lanes.forEach(lane => lane.spin());
+}
+
+function checkAllFinished() {
+    if (lanes.every(lane => !lane.isSpinning)) {
+        document.getElementById('spin-button').disabled = false;
+        saveWinners();
+        triggerConfetti();
+    }
+}
+
+function saveWinners() {
+    let winnersStore = JSON.parse(localStorage.getItem('raffleWinners')) || [];
+    const timestamp = new Date().toLocaleString();
+    lanes.forEach((lane, index) => {
+        winnersStore.unshift({
+            container: `Container ${index + 1}`,
+            name: lane.currentWinner,
+            time: timestamp
         });
+    });
+    localStorage.setItem('raffleWinners', JSON.stringify(winnersStore));
+}
 
-        localStorage.setItem('savedWinners', JSON.stringify(savedWinners));
+// --- CONFETTI SYSTEM ---
+const canvas = document.getElementById('confetti-canvas');
+const ctx = canvas.getContext('2d');
+let confettiParticles = [];
+
+function triggerConfetti() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    confettiParticles = [];
+    
+    for (let i = 0; i < 150; i++) {
+        confettiParticles.push({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height - canvas.height,
+            size: Math.random() * 7 + 5,
+            color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+            velocity: { x: (Math.random() - 0.5) * 3, y: Math.random() * 5 + 2 },
+            rotation: Math.random() * 360
+        });
     }
+    animateConfetti();
+}
 
-    startButton.addEventListener('click', startRaffle);
+function animateConfetti() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    confettiParticles.forEach((p, i) => {
+        p.y += p.velocity.y;
+        p.x += p.velocity.x;
+        p.rotation += 2;
 
-    function startConfetti() {
-        const canvas = document.getElementById('confetti-canvas');
-        if (!canvas) return console.error("Confetti canvas not found");
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+        ctx.restore();
 
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        if (p.y > canvas.height) confettiParticles.splice(i, 1);
+    });
 
-        const confettiCount = 500;
-        const confetti = [];
-
-        for (let i = 0; i < confettiCount; i++) {
-            confetti.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height - canvas.height,
-                r: Math.random() * 6 + 2,
-                d: Math.random() * confettiCount,
-                color: `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 1)`,
-                tilt: Math.random() * 10 - 10,
-                tiltAngleIncremental: Math.random() * 0.07 + 0.05,
-                tiltAngle: 0,
-                opacity: 3
-            });
-        }
-
-        function drawConfetti() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            confetti.forEach((c, index) => {
-                c.tiltAngle += c.tiltAngleIncremental;
-                c.y += (Math.cos(c.d) + 3 + c.r / 2) / 2;
-                c.x += Math.sin(c.d);
-                c.tilt = Math.sin(c.tiltAngle - index / 3) * 15;
-                c.opacity = Math.max(0, c.opacity - 0.005);
-
-                if (c.color) {
-                    const rgbValues = c.color.match(/\d+/g);
-                    if (rgbValues) {
-                        ctx.strokeStyle = `rgba(${rgbValues.slice(0, 3).join(', ')}, ${c.opacity})`;
-                        ctx.beginPath();
-                        ctx.lineWidth = c.r / 2;
-                        ctx.moveTo(c.x + c.tilt + c.r, c.y);
-                        ctx.lineTo(c.x + c.tilt, c.y + c.tilt + c.r);
-                        ctx.stroke();
-                    }
-                }
-            });
-
-            confetti.forEach((c, i) => {
-                if (c.opacity <= 0) confetti.splice(i, 1);
-            });
-
-            if (confetti.length > 0) requestAnimationFrame(drawConfetti);
-        }
-
-        drawConfetti();
+    if (confettiParticles.length > 0) {
+        requestAnimationFrame(animateConfetti);
     }
-});
+}
+
+window.onload = initWorld;
+window.onresize = () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+};

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tibud Raffle System</title>
+  <link rel="stylesheet" href="tibud.css">
+</head>
+<body style="background-color: #021535;">
+  <!-- <img src="BACKGROUND.jpg" alt="bg" class="bg"> -->
+        <!-- <img src="ANNUAL.jpg" alt="Logo" class="Logo">  -->
+
+    <div class="menu-wrapper">
+        <button class="list" onclick="window.location.href='SavedNames.html'">
+          <img src="list.png" alt="list icon">
+        </button>
+
+        <button class="winnerbtn" onclick="openPopup()">
+          <img src="trophy.png" alt="trophy icon">
+        </button>
+    </div>
+
+        <div id="popupOverlay" class="overlay">
+    <div class="popup">
+    <h2>Select Number of Winners</h2>
+
+    <button onclick="selectNumber(1)">1 Winner</button>
+    <button onclick="selectNumber(2)">2 Winners</button>
+    <button onclick="selectNumber(3)">3 Winners</button>
+    <button onclick="selectNumber(4)">4 Winners</button>
+    <button onclick="selectNumber(5)">5 Winners</button>
+
+    <button class="close" onclick="closePopup()">✖</button>
+  </div>
+</div>
+
+    <div class = "all_containers">
+      <div class="container1">
+        <div class="raffle-container1">
+          <div class="name-list">
+            <div class="name-container">John Doe</div>
+            <div class="name-container">Jane Smith</div>
+            <div class="name-container">Alex Johnson</div>
+            <div class="name-container">Chris Lee</div>
+            <div class="name-container">Emily Davis</div>
+          </div>  
+        </div>
+      </div>
+    </div>
+
+        <button class="spin-button">Spin</button>
+    </div>
+    </div>
+    <canvas id="confetti-canvas"></canvas>
+    <script src="script.js"></script>
+</body>
+</html>

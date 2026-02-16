@@ -7,77 +7,39 @@
   <link rel="stylesheet" href="tibud.css">
 </head>
 <body>
-  <img src="BACKGROUND.jpg" alt="bg" class="bg">
-        <img src="ANNUAL.jpg" alt="Logo" class="Logo">
-        <button class="list" onclick="window.location.href='SavedNames.html'">
-          <img src="list.png" alt="list icon">
-        </button>
-    <div class = "all_containers">
-      <div class="container1">
-        <div class="raffle-container1">
-          <div class="name-list">
-            <div class="name-container">John Doe</div>
-            <div class="name-container">Jane Smith</div>
-            <div class="name-container">Alex Johnson</div>
-            <div class="name-container">Chris Lee</div>
-            <div class="name-container">Emily Davis</div>
-          </div>
-        </div>
-      </div>
+  <img src="sample.jpg" alt="bg" class="bg">
+  <img src="33rd_logo.png" alt="Logo" class="Logo">
 
-        <div class="container2">
-          <div class="raffle-container2">
-            <div class="name-list">
-              <div class="name-container">John Doe</div>
-              <div class="name-container">Jane Smith</div>
-              <div class="name-container">Alex Johnson</div>
-              <div class="name-container">Chris Lee</div>
-              <div class="name-container">Emily Davis</div>
-            </div>
-          </div>
-        </div>
+  <div> 
+    <a href="SavedNames.html">
+      <button class="list">
+        <img src="list.png" alt="View List">
+      </button>
+    </a>
+  </div>
 
-        <div class="container3">
-          <div class="raffle-container3">
-            <div class="name-list">
-              <div class="name-container">John Doe</div>
-              <div class="name-container">Jane Smith</div>
-              <div class="name-container">Alex Johnson</div>
-              <div class="name-container">Chris Lee</div>
-              <div class="name-container">Emily Davis</div>
-            </div>
-          </div>
-        </div>
+  <div class="raffle-world" id="world"></div>
 
-        <div class="container4">
-          <div class="raffle-container4">
-            <div class="name-list">
-              <div class="name-container">John Doe</div>
-              <div class="name-container">Jane Smith</div>
-              <div class="name-container">Alex Johnson</div>
-              <div class="name-container">Chris Lee</div>
-              <div class="name-container">Emily Davis</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="container5">
-          <div class="raffle-container5">
-            <div class="name-list">
-              <div class="name-container">John Doe</div>
-              <div class="name-container">Jane Smith</div>
-              <div class="name-container">Alex Johnson</div>
-              <div class="name-container">Chris Lee</div>
-              <div class="name-container">Emily Davis</div>
-            </div>
-          </div>
-        </div>
+  <div class="controls-wrapper">
+    <button id="spin-button" onclick="spinAll()">SPIN</button>
+    <div class="setup-controls">
+      <label>Containers: </label>
+      <select id="laneCount" onchange="initWorld()">
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+      </select>
     </div>
+  </div>
 
-        <button class="spin-button">Spin</button>
-    </div>
-    </div>
-    <canvas id="confetti-canvas"></canvas>
-    <script src="script.js"></script>
+  <canvas id="confetti-canvas"></canvas>
+  <script src="script.js"></script>
 </body>
 </html>

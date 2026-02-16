@@ -1,43 +1,51 @@
-function displayWinners() {
-    const winners = JSON.parse(localStorage.getItem('savedWinners')) || [];
-    const tableBody = document.getElementById('winnerList');
-    tableBody.innerHTML = '';
+function render() {
+    const winners = JSON.parse(localStorage.getItem('raffleWinners')) || [];
+    const tbody = document.getElementById('tbody');
+    const totalDisplay = document.getElementById('totalCount');
 
-    winners.forEach((winner) => {
-        const row = document.createElement('tr');
-        const nameCell = document.createElement('td');
+    if (totalDisplay) {
+        totalDisplay.textContent = `${winners.length} Winners Total`;
+    }
 
-        nameCell.textContent = winner.name;
-        row.appendChild(nameCell);
-        tableBody.appendChild(row);
-    });
+    if (winners.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="2" style="padding: 50px; color: #999;">No winners yet</td></tr>`;
+        return;
+    }
+
+    // Reverse the list so the newest winners are at the top
+    tbody.innerHTML = winners.slice().reverse().map((w, i) => {
+        const name = typeof w === 'object' ? w.name : w;
+        const displayNo = winners.length - i;
+        return `
+            <tr>
+                <td>${name}</td>
+            </tr>
+        `;
+    }).join('');
 }
 
-
-function exportToExcel() { //exports list of winners to csv file
-    const winners = JSON.parse(localStorage.getItem('savedWinners')) || [];
-    let csvContent = "data:text/csv;charset=utf-8,Name\n";
-    winners.forEach(w => {
-        csvContent += `${w.name}\n`;
-    });
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', 'winners.csv');
-    link.click();
-}
-
-function deleteAllWinners() {
-    if (confirm('Are you sure you want to delete all winners?')) {
-        localStorage.removeItem('savedWinners');
-        displayWinners(); 
+function clearAll() {
+    if (confirm("Delete all winners permanently?")) {
+        localStorage.removeItem('raffleWinners');
+        render();
     }
 }
 
-document.querySelector('.back').addEventListener('click', function(event) {
-    event.preventDefault();
-    window.history.back();
-});
+function exportToExcel() {
+    const winners = JSON.parse(localStorage.getItem('raffleWinners')) || [];
+    if (winners.length === 0) return alert("Nothing to export!");
 
-window.onload = displayWinners;
+    let csv = "No.,Winner Name\n";
+    winners.forEach((w, i) => {
+        const name = typeof w === 'object' ? w.name : w;
+        csv += `${i + 1},${name}\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'Raffle_Winners.csv';
+    a.click();
+}
+
+document.addEventListener('DOMContentLoaded', render);

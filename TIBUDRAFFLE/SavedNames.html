@@ -1,31 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tibud Raffle System</title>
-  <link rel="stylesheet" href="saved.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tibud Raffle System - Winners</title>
+    <link rel="stylesheet" href="saved.css">
 </head>
 <body>
-    <img src="BACKGROUND.jpg" alt="bg" class="bg">
+    <img src="sample.jpg" alt="bg" class="bg">
+    
     <button class="back" onclick="window.location.href='raffle.html'">
         <img src="back.png" alt="back">
     </button>
-    <div class="button-container">
-    <button class= "export" onclick="exportToExcel()">EXPORT</button>
-    <button class ="delete" onClick="deleteAllWinners()">DELETE ALL</button>
-    </div>
+
     <div class="winner">WINNERS</div>
+
     <div class="table-container">
-        <table id="winnerTable">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                </tr>
-            </thead>
-            <tbody id="winnerList"></tbody>
-        </table>
+        <div class="table-header-actions">
+            <div id="totalCount" class="counter-text">0 Winners Total</div>
+            <div class="btn-group">
+                <button class="export" onclick="exportToExcel()">EXPORT</button>
+                <button class="delete" onClick="clearAll()">DELETE ALL</button>
+            </div>
+        </div>
+        
+        <div class="table-scroll">
+            <table id="winnerTable">
+                <thead>
+                    <tr>
+                        <th style="width: 100%;">Winner Name</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
     </div>
+
     <script src="savednames.js"></script>
 </body>
 </html>
