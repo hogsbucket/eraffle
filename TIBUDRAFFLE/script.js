@@ -1,5 +1,12 @@
-// 1. Create the large pool of 10,000 names
-const globalNamePool = Array.from({length: 10000}, (_, i) => `Participant ${i + 1}`);
+// 1. Initialize the pool from localStorage, or create it if it doesn't exist
+let globalNamePool = JSON.parse(localStorage.getItem('rafflePool'));
+
+if (!globalNamePool) {
+    // If no pool exists, create the initial 10,000 names
+    globalNamePool = Array.from({length: 10000}, (_, i) => `Participant ${i + 1}`);
+    localStorage.setItem('rafflePool', JSON.stringify(globalNamePool));
+}
+
 let lanes = [];
 
 class RaffleLane {
@@ -40,6 +47,8 @@ class RaffleLane {
     }
 
     getRandomName() {
+        // Safety check if pool is empty
+        if (this.lanePool.length === 0) return "Empty Pool";
         return this.lanePool[Math.floor(Math.random() * this.lanePool.length)];
     }
 
@@ -94,40 +103,74 @@ function initWorld() {
     world.innerHTML = '';
     lanes = [];
     const count = parseInt(document.getElementById('laneCount').value);
-    const chunkSize = Math.floor(globalNamePool.length / count);
-
+    
     for (let i = 0; i < count; i++) {
-        const start = i * chunkSize;
-        const end = (i === count - 1) ? globalNamePool.length : (i + 1) * chunkSize;
-        const lanePool = globalNamePool.slice(start, end);
-        lanes.push(new RaffleLane(world, i, lanePool));
+        lanes.push(new RaffleLane(world, i, globalNamePool)); 
     }
 }
 
 function spinAll() {
-    document.getElementById('spin-button').disabled = true;
+    if (globalNamePool.length < lanes.length) {
+        alert("Not enough names left!");
+        return;
+    }
+
+    const btn = document.getElementById('spin-button');
+    const video = btn.querySelector('.btn-video');
+
+    // Set playback speed: 1.0 is normal, 2.0 is double speed, 3.0 is triple, etc.
+    video.playbackRate = 3.0; 
+
+    btn.disabled = true; 
     lanes.forEach(lane => lane.spin());
 }
 
 function checkAllFinished() {
     if (lanes.every(lane => !lane.isSpinning)) {
-        document.getElementById('spin-button').disabled = false;
-        saveWinners();
+        const btn = document.getElementById('spin-button');
+        btn.disabled = false;
+        btn.classList.remove('loading'); 
+
+        saveWinnersAndRemove(); 
         triggerConfetti();
     }
 }
 
-function saveWinners() {
+function saveWinnersAndRemove() {
     let winnersStore = JSON.parse(localStorage.getItem('raffleWinners')) || [];
     const timestamp = new Date().toLocaleString();
+
     lanes.forEach((lane, index) => {
+        const winnerName = lane.currentWinner;
+        
         winnersStore.unshift({
             container: `Container ${index + 1}`,
-            name: lane.currentWinner,
+            name: winnerName,
             time: timestamp
         });
+
+        // REMOVE FROM THE POOL
+        const nameIndex = globalNamePool.indexOf(winnerName);
+        if (nameIndex > -1) {
+            globalNamePool.splice(nameIndex, 1);
+        }
     });
+
+    // CRITICAL: Save both updated arrays back to localStorage
+    localStorage.setItem('rafflePool', JSON.stringify(globalNamePool));
     localStorage.setItem('raffleWinners', JSON.stringify(winnersStore));
+    
+    console.log(`Remaining in pool: ${globalNamePool.length}`);
+}
+
+function resetRaffle(event) {
+    if (event) event.stopPropagation(); // Stops it from triggering the SavedNames.html link
+
+    if (confirm("Reset everything? This will restore 10,000 participants and delete the winner list.")) {
+        localStorage.removeItem('rafflePool');
+        localStorage.removeItem('raffleWinners');
+        window.location.href = "raffle.html"; 
+    }
 }
 
 // --- CONFETTI SYSTEM ---

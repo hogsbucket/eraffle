@@ -26,7 +26,7 @@ body {
 .list {
   position: absolute;
   top: 13%;
-  left: 12%;
+  left: 10%;
   width: 70px;
   height: 70px;
   border: none;
@@ -40,6 +40,27 @@ body {
 }
 
 .list:hover img {
+  transform: scale(1.1);
+  filter: drop-shadow(0 0 10px gold);
+}
+
+.reset-button {
+    position: absolute;
+    top: 20.5%;
+    left: 10%;
+    width: 70px;
+    height: 70px;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+.reset-button img {
+  width: 100%;
+  transition: transform 0.3s;
+}
+
+.reset-button:hover img {
   transform: scale(1.1);
   filter: drop-shadow(0 0 10px gold);
 }
@@ -139,8 +160,33 @@ body {
   cursor: pointer;
 }
 
+/* Hide video by default */
+.btn-video {
+    display: none;
+    position: absolute;
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+    mix-blend-mode: multiply; /* Removes white background from video */
+}
+
+/* DISABLED / LOADING STATE */
 #spin-button:disabled {
-  background: #6c757d;
+    background-color: #95a5a6; /* Gray background */
+    cursor: not-allowed;
+}
+
+#spin-button:disabled .btn-text {
+    display: none; /* Hide the word SPIN */
+}
+
+#spin-button:disabled .btn-video {
+    display: block;
+    top: 62%;
+    left: 41%;
+    width: 5%;
+    height: 5%;
+    justify-content: center; /* Show the video only when disabled */
 }
 
 #confetti-canvas {
@@ -151,3 +197,4 @@ body {
   height: 100%;
   pointer-events: none;
 }
+

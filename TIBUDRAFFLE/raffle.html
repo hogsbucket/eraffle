@@ -15,13 +15,19 @@
       <button class="list">
         <img src="list.png" alt="View List">
       </button>
+      <button class="reset-button" onclick="resetRaffle()">
+        <img src="delete.png" alt="Reset Raffle">
+      </button>
     </a>
   </div>
 
   <div class="raffle-world" id="world"></div>
 
   <div class="controls-wrapper">
-    <button id="spin-button" onclick="spinAll()">SPIN</button>
+    <button id="spin-button" onclick="spinAll()">
+  <span class="btn-text">SPIN</span>
+  <video src="load.mp4" class="btn-video" autoplay loop muted playsinline></video>
+</button>
     <div class="setup-controls">
       <label>Containers: </label>
       <select id="laneCount" onchange="initWorld()">
@@ -35,8 +41,8 @@
         <option value="8">8</option>
         <option value="9">9</option>
         <option value="10">10</option>
-      </select>
-    </div>
+      </select> 
+    </div> 
   </div>
 
   <canvas id="confetti-canvas"></canvas>
