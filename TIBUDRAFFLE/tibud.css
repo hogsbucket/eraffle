@@ -149,44 +149,45 @@ body {
 }
 
 #spin-button {
-  width: 180px;
-  height: 50px;
-  font-size: 20px;
-  font-weight: bold;
-  color: white;
-  background: #e24b25;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+    position: relative; 
+    width: 150px;      
+    height: 50px;
+    background-color: #f7bb2d;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 17px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;    
+    cursor: pointer;
 }
 
-/* Hide video by default */
 .btn-video {
-    display: none;
-    position: absolute;
-    height: 100%;
+    display: none;     
+    position: absolute; 
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); 
+    height: 120%;     
     width: auto;
-    object-fit: contain;
-    mix-blend-mode: multiply; /* Removes white background from video */
+    mix-blend-mode: multiply; 
+    pointer-events: none;
 }
 
-/* DISABLED / LOADING STATE */
 #spin-button:disabled {
-    background-color: #95a5a6; /* Gray background */
+    background-color: #95a5a6 !important; 
     cursor: not-allowed;
 }
 
 #spin-button:disabled .btn-text {
-    display: none; /* Hide the word SPIN */
+    display: none; 
 }
 
 #spin-button:disabled .btn-video {
-    display: block;
-    top: 62%;
-    left: 41%;
-    width: 5%;
-    height: 5%;
-    justify-content: center; /* Show the video only when disabled */
+    display: block !important;
 }
 
 #confetti-canvas {

@@ -1,9 +1,9 @@
-// 1. Initialize the pool from localStorage, or create it if it doesn't exist
+// Initialize the pool from localStorage, or create it if it doesn't exist
 let globalNamePool = JSON.parse(localStorage.getItem('rafflePool'));
 
 if (!globalNamePool) {
     // If no pool exists, create the initial 10,000 names
-    globalNamePool = Array.from({length: 10000}, (_, i) => `Participant ${i + 1}`);
+    globalNamePool = Array.from({length: 10}, (_, i) => `Participant ${i + 1}`);
     localStorage.setItem('rafflePool', JSON.stringify(globalNamePool));
 }
 
@@ -47,10 +47,9 @@ class RaffleLane {
     }
 
     getRandomName() {
-        // Safety check if pool is empty
-        if (this.lanePool.length === 0) return "Empty Pool";
-        return this.lanePool[Math.floor(Math.random() * this.lanePool.length)];
-    }
+    if (this.lanePool.length === 0) return "Empty Pool";
+    return this.lanePool[Math.floor(Math.random() * this.lanePool.length)];
+}
 
     spin() {
         this.speed = 20 + (Math.random() * 25);
@@ -103,9 +102,19 @@ function initWorld() {
     world.innerHTML = '';
     lanes = [];
     const count = parseInt(document.getElementById('laneCount').value);
-    
+
+    // SHUFFLE
+    let shuffledPool = [...globalNamePool].sort(() => Math.random() - 0.5);
+
+    // names each lane gets
+    const chunkSize = Math.floor(shuffledPool.length / count);
+
     for (let i = 0; i < count; i++) {
-        lanes.push(new RaffleLane(world, i, globalNamePool)); 
+        const start = i * chunkSize;
+        const end = (i === count - 1) ? shuffledPool.length : (i + 1) * chunkSize;
+        const laneSpecificPool = shuffledPool.slice(start, end);
+
+        lanes.push(new RaffleLane(world, i, laneSpecificPool)); 
     }
 }
 
@@ -118,7 +127,6 @@ function spinAll() {
     const btn = document.getElementById('spin-button');
     const video = btn.querySelector('.btn-video');
 
-    // Set playback speed: 1.0 is normal, 2.0 is double speed, 3.0 is triple, etc.
     video.playbackRate = 3.0; 
 
     btn.disabled = true; 
@@ -149,24 +157,28 @@ function saveWinnersAndRemove() {
             time: timestamp
         });
 
-        // REMOVE FROM THE POOL
-        const nameIndex = globalNamePool.indexOf(winnerName);
-        if (nameIndex > -1) {
-            globalNamePool.splice(nameIndex, 1);
+        // Remove from Global Pool
+        const globalIndex = globalNamePool.indexOf(winnerName);
+        if (globalIndex > -1) {
+            globalNamePool.splice(globalIndex, 1);
+        }
+
+        // Remove from the SPECIFIC Lane's Pool
+        const laneIndex = lane.lanePool.indexOf(winnerName);
+        if (laneIndex > -1) {
+            lane.lanePool.splice(laneIndex, 1);
         }
     });
 
-    // CRITICAL: Save both updated arrays back to localStorage
+    // Save updated global pool to storage
     localStorage.setItem('rafflePool', JSON.stringify(globalNamePool));
     localStorage.setItem('raffleWinners', JSON.stringify(winnersStore));
-    
-    console.log(`Remaining in pool: ${globalNamePool.length}`);
 }
 
 function resetRaffle(event) {
-    if (event) event.stopPropagation(); // Stops it from triggering the SavedNames.html link
+    if (event) event.stopPropagation(); 
 
-    if (confirm("Reset everything? This will restore 10,000 participants and delete the winner list.")) {
+    if (confirm("Reset everything? This will restore all participants and delete the winner list.")) {
         localStorage.removeItem('rafflePool');
         localStorage.removeItem('raffleWinners');
         window.location.href = "raffle.html"; 
